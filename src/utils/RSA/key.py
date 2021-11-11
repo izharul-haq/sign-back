@@ -1,7 +1,7 @@
 from math import gcd
 
 
-def generate_key(p: int, q: int, e: int) -> (int, int, int):
+def generate_key(p: int, q: int, e: int) -> (dict, dict):
     '''Generate RSA public/private key using given prime numbers p
      and q and initial public key e.
 
@@ -23,4 +23,7 @@ def generate_key(p: int, q: int, e: int) -> (int, int, int):
 
     d = pow(e, -1, toitent)
 
-    return (e, d, n)
+    pub_key: dict = {'e': e, 'n': n}
+    pri_key: dict = {'d': d, 'n': n}
+
+    return pub_key, pri_key
