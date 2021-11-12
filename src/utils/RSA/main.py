@@ -11,4 +11,4 @@ def verify(_hash: int, sign: int, e: int, n: int) -> bool:
 
     signature: int = pow(sign, e, n)
 
-    return signature == _hash
+    return signature == (_hash % n)
