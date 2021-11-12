@@ -9,10 +9,10 @@ def generate_key(p: int, q: int, e: int) -> (dict, dict):
     Φ(n) = (p - 1) * (q - 1), may or may not co-prime with Φ(n),
     and greater than one.'''
 
-    n = p * q
-    toitent = (p - 1) * (q - 1)
+    n: int = p * q
+    toitent: int = (p - 1) * (q - 1)
 
-    step = 1 if e < n else -1
+    step: int = 1 if e < n else -1
 
     # update e so that e is co-prime with toitent
     for i in range(e, n, step):
@@ -21,7 +21,11 @@ def generate_key(p: int, q: int, e: int) -> (dict, dict):
         else:
             e = i
 
-    d = pow(e, -1, toitent)
+    d: int = pow(e, -1, toitent)
+
+    e: str = str(e)
+    d: str = str(d)
+    n: str = str(n)
 
     pub_key: dict = {'e': e, 'n': n}
     pri_key: dict = {'d': d, 'n': n}
