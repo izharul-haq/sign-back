@@ -1,7 +1,9 @@
-from utils import elg, rsa
+from typing import Union
+
+from utils import dss, rsa
 
 
-def generate_key(algo: str, **kwargs) -> (dict, dict):
+def create_key(algo: str, **kwargs) -> (dict, dict):
     '''Generate both public and private keys used in
     creating signature.'''
 
@@ -12,15 +14,14 @@ def generate_key(algo: str, **kwargs) -> (dict, dict):
 
         return rsa.generate_key(p, q, e)
 
-    else:   # algo == 'elg'
+    else:   # algo == 'dss'
         p: int = kwargs['p']
         q: int = kwargs['q']
         x: int = kwargs['x']
 
-        return elg.generate_key(p, q, x)
+        return dss.generate_key(p, q, x)
 
 
-# TODO : implement signature generator using elgamal algorithm
 def sign(algo: str, message: int, **kwargs) -> str:
     '''Generate a digital signature using
     given algorithm and parameters.'''
@@ -33,15 +34,20 @@ def sign(algo: str, message: int, **kwargs) -> str:
 
         signature = rsa.sign(message, d, n)
 
-    else:   # algo == 'elg'
-        pass
+    else:   # algo == 'dss'
+        p: int = kwargs['p']
+        q: int = kwargs['q']
+        x: int = kwargs['x']
+
+        signature = rsa.sign(message, x, p, q)
 
     return hex(signature)[2:].upper()
 
 
-# TODO : implement verify signature using elgamal algorithm
-def verify(algo: str, message: int, sign: int, **kwargs) -> bool:
-    '''Verify wethet given signature is valid
+def verify(
+        algo: str, message: int, sign: Union[int, tuple[int, int]],
+        **kwargs) -> bool:
+    '''Verify wether given signature is valid
     for given message using given algorithm and
     parameters.'''
 
@@ -53,7 +59,12 @@ def verify(algo: str, message: int, sign: int, **kwargs) -> bool:
 
         is_valid = rsa.verify(message, sign, e, n)
 
-    else:   # algo == 'elg'
-        pass
+    else:   # algo == 'dss'
+        p: int = kwargs['p']
+        q: int = kwargs['q']
+        g: int = kwargs['g']
+        y: int = kwargs['y']
+
+        is_valid = dss.verify(message, sign, p, q, g, y)
 
     return is_valid

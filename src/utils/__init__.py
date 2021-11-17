@@ -1,3 +1,3 @@
-from .SHA import generate_hash
+from .SHA import sha
 import utils.RSA as rsa
-import utils.Elgamal as elg
+import utils.DSS as dss

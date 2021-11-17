@@ -1,10 +1,12 @@
+from io import BytesIO
 from json import loads
 from logging import exception
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, jsonify, request, Response
+from werkzeug.wsgi import FileWrapper
 
-from services import create_key, create_sign, verify_sign
-from utils import generate_hash
+from utils import sha
+import services as s
 
 Signature = Blueprint('signature', __name__, url_prefix='/sign')
 
@@ -12,29 +14,31 @@ Signature = Blueprint('signature', __name__, url_prefix='/sign')
 @Signature.route('/key/<string:key_type>', methods=['POST'])
 def generate_key(key_type: str):
     try:
-        algorithm: str = request.args.get('algo', type=str)
+        algo: str = request.args.get('algo', type=str)
         req_body = loads(request.data)
 
         pub_key: dict = None
         pri_key: dict = None
 
-        if algorithm == 'rsa':
+        # Create public and private keys
+        if algo == 'rsa':
             p: int = int(req_body['p'])
             q: int = int(req_body['q'])
             e: int = int(req_body['e'])
 
-            pub_key, pri_key = create_key(algorithm, p=p, q=q, e=e)
+            pub_key, pri_key = s.create_key(algo, p=p, q=q, e=e)
 
-        elif algorithm == 'elg':
+        elif algo == 'dss':
             p: int = int(req_body['p'])
             q: int = int(req_body['q'])
             x: int = int(req_body['x'])
 
-            pub_key, pri_key = create_key(algorithm, p=p, q=q, x=x)
+            pub_key, pri_key = s.create_key(algo, p=p, q=q, x=x)
 
         else:
-            raise ValueError(f'Algorithm {algorithm} is not supported.')
+            raise ValueError(f'Algorithm {algo} is not supported.')
 
+        # Return public key or/and private key
         if key_type == 'public':
             return jsonify({'pub_key': pub_key}), 200
 
@@ -57,23 +61,39 @@ def generate_key(key_type: str):
 @Signature.route('/file', methods=['POST'])
 def sign():
     try:
-        algorithm: str = request.args.get('algo', type=str)
-        content: str = request.files['message'].read()
-        hash_value: int = generate_hash(content)
+        algo = request.args.get('algo', type=str)
+        attach = request.args.get('attach', type=int)
+        req_file = request.files['message']
 
+        content: bytes = req_file.read()
+        digest: int = sha(content)
+
+        # Create digital signature
         signature: str = None
-        if algorithm == 'rsa':
+        if algo == 'rsa':
             d, n = list(map(int, request.form.get('key').split(', ')))
 
-            signature = create_sign(algorithm, hash_value, d=d, n=n)
+            signature = s.sign(algo, digest, d=d, n=n)
 
-        elif algorithm == 'elg':
+        elif algo == 'dss':
             x, p, q = list(map(int, request.form.get('key').split(', ')))
 
-        else:
-            raise ValueError(f'algorithm {algorithm} is not supported.')
+            signature = s.sign(algo, digest, x=x, p=p, q=q)
 
-        return signature, 200
+        else:
+            raise ValueError(f'Algorithm {algo} is not supported.')
+
+        # Return result
+        if attach:
+            buffer: bytes = content + b'\n\n\nSIGNATURE:' + signature.encode(
+                'utf-8')
+            wrapped = FileWrapper(BytesIO(buffer))
+
+            return Response(wrapped, mimetype=req_file.mimetype,
+                            direct_passthrough=True), 200
+
+        else:
+            return signature, 200
 
     except Exception as e:
         err_message: str = str(e)
@@ -85,25 +105,32 @@ def sign():
 @Signature.route('/verify', methods=['POST'])
 def verify():
     try:
-        algorithm: str = request.args.get('algo', type=str)
-        content: str = request.files['message'].read()
-        signature: str = request.form.get('sign')
+        algo: str = request.args.get('algo', type=str)
+        content: bytes = request.files['message'].read()
+        sign: str = request.form.get('sign')
 
-        hash_value: int = generate_hash(content)
-        hash_sign: int = int('0x' + signature, base=0)
+        signature: int = None
+        if sign == '':
+            content, sign = content.split(b'\n\n\nSIGNATURE:')
+            sign = sign.decode('utf-8')
+
+        signature = int(sign, base=16)
+        digest: int = sha(content)
 
         is_valid: bool = None
 
-        if algorithm == 'rsa':
+        if algo == 'rsa':
             e, n = list(map(int, request.form.get('key').split(', ')))
 
-            is_valid = verify_sign(algorithm, hash_value, hash_sign, e=e, n=n)
+            is_valid = s.verify(algo, digest, signature, e=e, n=n)
 
-        elif algorithm == 'elg':
+        elif algo == 'dss':
             p, q, g, y = list(map(int, request.form.get('key').split(', ')))
 
+            is_valid = s.verify(algo, digest, signature, p=p, q=q, g=g, y=y)
+
         else:
-            raise ValueError(f'algorithm {algorithm} is not supported.')
+            raise ValueError(f'Algorithm {algo} is not supported.')
 
         return jsonify(is_valid), 200
 
