@@ -1,7 +1,7 @@
 from type_aliases import dsign
 
 
-def sign(_hash: int, d: int, n: int) -> int:
+def sign(_hash: int, d: int, n: int) -> dsign:
     '''Generate a signature from given hash
     and private key (d, n) using RSA algorithm.'''
 
