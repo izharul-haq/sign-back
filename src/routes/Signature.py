@@ -6,6 +6,7 @@ from flask import Blueprint, jsonify, request, Response
 from werkzeug.wsgi import FileWrapper
 
 from utils import sha
+from type_aliases import dsign, key
 import services as s
 
 Signature = Blueprint('signature', __name__, url_prefix='/sign')
@@ -17,8 +18,8 @@ def generate_key(key_type: str):
         algo: str = request.args.get('algo', type=str)
         req_body = loads(request.data)
 
-        pub_key: dict = None
-        pri_key: dict = None
+        pub_key: key = None
+        pri_key: key = None
 
         # Create public and private keys
         if algo == 'rsa':
@@ -62,7 +63,7 @@ def generate_key(key_type: str):
 def sign():
     try:
         algo = request.args.get('algo', type=str)
-        attach = request.args.get('attach', type=int)
+        attach = request.args.get('attach', type=int)   # either 0 or 1
         req_file = request.files['message']
 
         content: bytes = req_file.read()
@@ -105,7 +106,7 @@ def sign():
 @Signature.route('/verify', methods=['POST'])
 def verify():
     try:
-        algo: str = request.args.get('algo', type=str)
+        algo = request.args.get('algo', type=str)
         content: bytes = request.files['message'].read()
         sign: str = request.form.get('sign')
 

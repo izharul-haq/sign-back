@@ -1,7 +1,9 @@
 from math import gcd
 
+from type_aliases import key
 
-def generate_key(p: int, q: int, e: int) -> (dict, dict):
+
+def generate_key(p: int, q: int, e: int) -> (key, key):
     '''Generate RSA public/private key using given prime numbers p
      and q and initial public key e.
 
@@ -9,10 +11,10 @@ def generate_key(p: int, q: int, e: int) -> (dict, dict):
     Φ(n) = (p - 1) * (q - 1), may or may not co-prime with Φ(n),
     and greater than one.'''
 
-    n: int = p * q
-    toitent: int = (p - 1) * (q - 1)
+    n = p * q
+    toitent = (p - 1) * (q - 1)
 
-    step: int = 1 if e < n else -1
+    step = 1 if e < n else -1
 
     # update e so that e is co-prime with toitent
     for i in range(e, n, step):
@@ -21,13 +23,13 @@ def generate_key(p: int, q: int, e: int) -> (dict, dict):
         else:
             e = i
 
-    d: int = pow(e, -1, toitent)
+    d = pow(e, -1, toitent)
 
-    e: str = str(e)
-    d: str = str(d)
-    n: str = str(n)
+    e = str(e)
+    d = str(d)
+    n = str(n)
 
-    pub_key: dict = {'e': e, 'n': n}
-    pri_key: dict = {'d': d, 'n': n}
+    pub_key: key = {'e': e, 'n': n}
+    pri_key: key = {'d': d, 'n': n}
 
     return pub_key, pri_key

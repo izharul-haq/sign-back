@@ -1,3 +1,6 @@
+from type_aliases import dsign
+
+
 def sign(_hash: int, d: int, n: int) -> int:
     '''Generate a signature from given hash
     and private key (d, n) using RSA algorithm.'''
@@ -5,7 +8,7 @@ def sign(_hash: int, d: int, n: int) -> int:
     return pow(_hash, d, n)
 
 
-def verify(_hash: int, sign: int, e: int, n: int) -> bool:
+def verify(_hash: int, sign: dsign, e: int, n: int) -> bool:
     '''Verify wether given sign is valid or not
     with given public key (e, n) using RSA algorithm.'''
 

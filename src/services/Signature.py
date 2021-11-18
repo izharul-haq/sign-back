@@ -1,9 +1,10 @@
 from typing import Union
 
 from utils import dss, rsa
+from type_aliases import dsign, key
 
 
-def create_key(algo: str, **kwargs) -> (dict, dict):
+def create_key(algo: str, **kwargs) -> (key, key):
     '''Generate both public and private keys used in
     creating signature.'''
 
@@ -44,9 +45,7 @@ def sign(algo: str, message: int, **kwargs) -> str:
     return hex(signature)[2:].upper()
 
 
-def verify(
-        algo: str, message: int, sign: Union[int, tuple[int, int]],
-        **kwargs) -> bool:
+def verify(algo: str, message: int, sign: dsign, **kwargs) -> bool:
     '''Verify wether given signature is valid
     for given message using given algorithm and
     parameters.'''
