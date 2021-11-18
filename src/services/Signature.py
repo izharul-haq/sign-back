@@ -1,6 +1,6 @@
 from typing import Union
 
-from utils import dss, rsa
+from utils import dsa, rsa
 from type_aliases import dsign, key
 
 
@@ -15,12 +15,12 @@ def create_key(algo: str, **kwargs) -> (key, key):
 
         return rsa.generate_key(p, q, e)
 
-    else:   # algo == 'dss'
+    else:   # algo == 'dsa'
         p: int = kwargs['p']
         q: int = kwargs['q']
         x: int = kwargs['x']
 
-        return dss.generate_key(p, q, x)
+        return dsa.generate_key(p, q, x)
 
 
 def sign(algo: str, message: int, **kwargs) -> str:
@@ -35,12 +35,12 @@ def sign(algo: str, message: int, **kwargs) -> str:
 
         signature = rsa.sign(message, d, n)
 
-    else:   # algo == 'dss'
+    else:   # algo == 'dsa'
         p: int = kwargs['p']
         q: int = kwargs['q']
         x: int = kwargs['x']
 
-        signature = rsa.sign(message, x, p, q)
+        signature = dsa.sign(message, x, p, q)
 
     return hex(signature)[2:].upper()
 
@@ -58,12 +58,12 @@ def verify(algo: str, message: int, sign: dsign, **kwargs) -> bool:
 
         is_valid = rsa.verify(message, sign, e, n)
 
-    else:   # algo == 'dss'
+    else:   # algo == 'dsa'
         p: int = kwargs['p']
         q: int = kwargs['q']
         g: int = kwargs['g']
         y: int = kwargs['y']
 
-        is_valid = dss.verify(message, sign, p, q, g, y)
+        is_valid = dsa.verify(message, sign, p, q, g, y)
 
     return is_valid

@@ -29,7 +29,7 @@ def generate_key(key_type: str):
 
             pub_key, pri_key = s.create_key(algo, p=p, q=q, e=e)
 
-        elif algo == 'dss':
+        elif algo == 'dsa':
             p: int = int(req_body['p'])
             q: int = int(req_body['q'])
             x: int = int(req_body['x'])
@@ -76,7 +76,7 @@ def sign():
 
             signature = s.sign(algo, digest, d=d, n=n)
 
-        elif algo == 'dss':
+        elif algo == 'dsa':
             x, p, q = list(map(int, request.form.get('key').split(', ')))
 
             signature = s.sign(algo, digest, x=x, p=p, q=q)
@@ -125,7 +125,7 @@ def verify():
 
             is_valid = s.verify(algo, digest, signature, e=e, n=n)
 
-        elif algo == 'dss':
+        elif algo == 'dsa':
             p, q, g, y = list(map(int, request.form.get('key').split(', ')))
 
             is_valid = s.verify(algo, digest, signature, p=p, q=q, g=g, y=y)
