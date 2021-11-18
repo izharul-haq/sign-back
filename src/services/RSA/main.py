@@ -9,7 +9,7 @@ def sign(_hash: int, d: int, n: int) -> dsign:
 
 
 def verify(_hash: int, sign: dsign, e: int, n: int) -> bool:
-    '''Verify wether given sign is valid or not
+    '''Verify whether given sign is valid or not
     with given public key (e, n) using RSA algorithm.'''
 
     signature: int = pow(sign, e, n)
