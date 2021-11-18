@@ -1,9 +1,9 @@
 from type_aliases import key
 
 
-# TODO : implement key generator for elgamal algorithm
+# TODO : implement key generator for DSA algorithm
 def generate_key(p: int, q: int, x: int) -> (key, key):
-    '''Generate DSS public/private key using given prime
+    '''Generate DSA public/private key using given prime
      numbers p and q and private key x.
 
     It's assumed that q is prime and a factor of (p - 1) while
