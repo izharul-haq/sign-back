@@ -78,9 +78,9 @@ def sign():
             signature: str = hex(signature)[2:].upper()
 
         elif algo == 'dsa':
-            x, p, q = list(map(int, request.form.get('key').split(', ')))
+            p, q, g, x = list(map(int, request.form.get('key').split(', ')))
 
-            signature = dsa.sign(digest, x=x, p=p, q=q)
+            signature = dsa.sign(digest, p, q, g, x)
             signature = ' '.join(hex(s)[2:].upper() for s in signature)
 
         else:
@@ -131,7 +131,7 @@ def verify():
             signature = tuple([int(h, base=16) for h in sign.split(' ')])
             p, q, g, y = list(map(int, request.form.get('key').split(', ')))
 
-            is_valid = dsa.verify(algo, digest, signature, p, q, g, y)
+            is_valid = dsa.verify(digest, signature, p, q, g, y)
 
         else:
             raise ValueError(f'Algorithm {algo} is not supported.')
