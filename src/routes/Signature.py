@@ -5,9 +5,9 @@ from logging import exception
 from flask import Blueprint, jsonify, request, Response
 from werkzeug.wsgi import FileWrapper
 
-from utils import sha
+from services import rsa, dsa
 from type_aliases import dsign, key
-import services as s
+from utils import sha
 
 Signature = Blueprint('signature', __name__, url_prefix='/sign')
 
@@ -27,14 +27,14 @@ def generate_key(key_type: str):
             q: int = int(req_body['q'])
             e: int = int(req_body['e'])
 
-            pub_key, pri_key = s.create_key(algo, p=p, q=q, e=e)
+            pub_key, pri_key = rsa.generate_key(p, q, e)
 
         elif algo == 'dsa':
             p: int = int(req_body['p'])
             q: int = int(req_body['q'])
             x: int = int(req_body['x'])
 
-            pub_key, pri_key = s.create_key(algo, p=p, q=q, x=x)
+            pub_key, pri_key = dsa.generate_key(p, q, x)
 
         else:
             raise ValueError(f'Algorithm {algo} is not supported.')
@@ -70,16 +70,18 @@ def sign():
         digest: int = sha(content)
 
         # Create digital signature
-        signature: str = None
+        signature: dsign = None
         if algo == 'rsa':
             d, n = list(map(int, request.form.get('key').split(', ')))
 
-            signature = s.sign(algo, digest, d=d, n=n)
+            signature = rsa.sign(digest, d, n)
+            signature: str = hex(signature)[2:].upper()
 
         elif algo == 'dsa':
             x, p, q = list(map(int, request.form.get('key').split(', ')))
 
-            signature = s.sign(algo, digest, x=x, p=p, q=q)
+            signature = dsa.sign(digest, x=x, p=p, q=q)
+            signature = ' '.join(hex(s)[2:].upper() for s in signature)
 
         else:
             raise ValueError(f'Algorithm {algo} is not supported.')
@@ -110,25 +112,26 @@ def verify():
         content: bytes = request.files['message'].read()
         sign: str = request.form.get('sign')
 
-        signature: int = None
+        digest: int = sha(content)
+
+        signature: dsign = None
         if sign == '':
             content, sign = content.split(b'\n\n\nSIGNATURE:')
             sign = sign.decode('utf-8')
 
-        signature = int(sign, base=16)
-        digest: int = sha(content)
-
         is_valid: bool = None
 
         if algo == 'rsa':
+            signature = int(sign, base=16)
             e, n = list(map(int, request.form.get('key').split(', ')))
 
-            is_valid = s.verify(algo, digest, signature, e=e, n=n)
+            is_valid = rsa.verify(digest, signature, e, n)
 
         elif algo == 'dsa':
+            signature = tuple([int(h, base=16) for h in sign.split(' ')])
             p, q, g, y = list(map(int, request.form.get('key').split(', ')))
 
-            is_valid = s.verify(algo, digest, signature, p=p, q=q, g=g, y=y)
+            is_valid = dsa.verify(algo, digest, signature, p, q, g, y)
 
         else:
             raise ValueError(f'Algorithm {algo} is not supported.')
