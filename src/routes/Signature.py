@@ -112,12 +112,12 @@ def verify():
         content: bytes = request.files['message'].read()
         sign: str = request.form.get('sign')
 
-        digest: int = sha(content)
-
         signature: dsign = None
-        if sign == '':
+        if sign == '' or sign is None:
             content, sign = content.split(b'\n\n\nSIGNATURE:')
             sign = sign.decode('utf-8')
+
+        digest: int = sha(content)
 
         is_valid: bool = None
 
