@@ -1,1 +1,1 @@
-from .SHA import sha
+from .SHA import sha256

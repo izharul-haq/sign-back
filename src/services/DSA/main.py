@@ -1,27 +1,30 @@
 from type_aliases import dsign
 from random import randint
 
-def sign(_hash: int, p: int, q: int, g: int, x: int) -> dsign:
+
+def sign(digest: int, p: int, q: int, g: int, x: int) -> dsign:
     '''Generate a signature from given hash,
-    and private key (p, q, g) using DSA algorithm.'''
+    and private key (p, q, g, x) using DSA
+    algorithm.'''
 
-    k = randint(1, q-1)
+    k = randint(1, q - 1)
 
-    r = pow(pow(g,k,p),1,q)
-    s = pow((pow(k, -1, q)*(_hash + (x*r))),1,q)
-    
-    return r,s
+    r = pow(g, k, p) % q
+    s = (pow(k, -1, q) * ((digest + (x * r)) % q)) % q
 
-def verify(_hash: int, sign: dsign, p: int, q: int, g: int, y: int) -> bool:
+    return r, s
+
+
+def verify(digest: int, sign: dsign, p: int, q: int, g: int, y: int) -> bool:
     '''Verify wether given sign (r, s) is 
     valid or not with given public key
     (p, q, g, y) using DSA algorithm.'''
-    
-    s_inv = pow(sign[1], -1, q)
-    w = pow(s_inv,1,q)
 
-    u1 = (_hash*w) % q
-    u2 = (sign[0]*w) % q
-    v = ((g**u1*y**u2) % p) % q
+    r, s = sign
 
-    return v == sign[0]
+    w = pow(s, -1, q)
+    u1 = (digest * w) % q
+    u2 = (r * w) % q
+    v = ((pow(g, u1, p) * pow(y, u2, p)) % p) % q
+
+    return v == r

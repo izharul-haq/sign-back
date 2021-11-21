@@ -7,7 +7,7 @@ from werkzeug.wsgi import FileWrapper
 
 from services import rsa, dsa
 from type_aliases import dsign, key
-from utils import sha
+from utils import sha256
 
 Signature = Blueprint('signature', __name__, url_prefix='/sign')
 
@@ -67,7 +67,9 @@ def sign():
         req_file = request.files['message']
 
         content: bytes = req_file.read()
-        digest: int = sha(content)
+
+        content_array: bytearray = bytearray(content)
+        digest: int = sha256(content_array)
 
         # Create digital signature
         signature: dsign = None
@@ -117,7 +119,8 @@ def verify():
             content, sign = content.split(b'\n\n\nSIGNATURE:')
             sign = sign.decode('utf-8')
 
-        digest: int = sha(content)
+        content_array: bytearray = bytearray(content)
+        digest: int = sha256(content_array)
 
         is_valid: bool = None
 
