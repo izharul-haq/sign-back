@@ -108,12 +108,3 @@ def sha256(message: bytearray) -> bytearray:
     )
 
     return int.from_bytes(digest_bytes, byteorder='big')
-
-
-if __name__ == '__main__':
-    with open('love_train.mp3', 'rb') as f:
-        m = f.read()
-
-    m = bytearray(m)
-
-    print(sha256(m))
