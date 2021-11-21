@@ -1,5 +1,6 @@
-from type_aliases import dsign
 from random import randint
+
+from type_aliases import dsign
 
 
 def sign(digest: int, p: int, q: int, g: int, x: int) -> dsign:
@@ -16,7 +17,7 @@ def sign(digest: int, p: int, q: int, g: int, x: int) -> dsign:
 
 
 def verify(digest: int, sign: dsign, p: int, q: int, g: int, y: int) -> bool:
-    '''Verify wether given sign (r, s) is 
+    '''Verify whether given sign (r, s) is 
     valid or not with given public key
     (p, q, g, y) using DSA algorithm.'''
 
